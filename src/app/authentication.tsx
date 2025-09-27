@@ -6,64 +6,41 @@ export default function Authentication() {
   const [token, setToken] = useState<string | null>(null);
 
   const clientId = "client_0e758242e8fe0360b64206fba2288b0e";
-  const redirectUri = window.location.origin; // adjust if you want /callback
+  const redirectUri = typeof window !== "undefined" ? window.location.origin : ""; 
   const scope = "api_agencies_read api_listings_read";
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const code = url.searchParams.get("code");
-    const state = url.searchParams.get("state");
+    if (typeof window === "undefined") return;
 
-    if (code) {
-      // we just came back from Domain auth
-      const storedState = sessionStorage.getItem("pkce_state");
-      const verifier = sessionStorage.getItem("pkce_verifier");
+    // Check sessionStorage first
+    const storedToken = sessionStorage.getItem("access_token");
+    if (storedToken) {
+      setToken(storedToken);
+      return;
+    }
 
-      if (state !== storedState) {
-        console.error("State mismatch");
-        return;
+    // Check URL hash for implicit flow token
+    if (window.location.hash) {
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      const accessToken = params.get("access_token");
+      if (accessToken) {
+        setToken(accessToken);
+        sessionStorage.setItem("access_token", accessToken);
+
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
-
-      if (!verifier) {
-        console.error("Missing code_verifier");
-        return;
-      }
-
-      // exchange code for token
-      const params = new URLSearchParams();
-      params.set("grant_type", "authorization_code");
-      params.set("code", code);
-      params.set("redirect_uri", redirectUri);
-      params.set("client_id", clientId);
-      params.set("code_verifier", verifier);
-
-      fetch("https://auth.domain.com.au/v1/connect/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: params.toString(),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("Token response:", data);
-          if (data.access_token) {
-            setToken(data.access_token);
-            sessionStorage.setItem("access_token", data.access_token);
-            if (data.refresh_token) {
-              sessionStorage.setItem("refresh_token", data.refresh_token);
-            }
-          }
-        })
-        .catch((err) => console.error(err));
     }
   }, []);
 
-  const handleLogin = async () => {
-    const state = crypto.randomUUID();
+  const handleLogin = () => {
+    if (typeof window === "undefined") return;
 
+    const state = crypto.randomUUID();
     sessionStorage.setItem("pkce_state", state);
 
     const authUrl = new URL("https://auth.domain.com.au/v1/connect/authorize");
-    authUrl.searchParams.set("response_type", "token");
+    authUrl.searchParams.set("response_type", "token"); // implicit flow
     authUrl.searchParams.set("client_id", clientId);
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("scope", scope);
@@ -72,26 +49,8 @@ export default function Authentication() {
     window.location.href = authUrl.toString();
   };
 
-  const callApi = () => {
-    const accessToken = sessionStorage.getItem("access_token");
-    if (!accessToken) {
-      console.error("No access token");
-      return;
-    }
-    fetch("https://api.domain.com.au/v1/agencies?q=NSW&pageSize=5", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => console.log("Agencies:", data))
-      .catch((err) => console.error(err));
-  };
-
   return (
     <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">Domain OAuth Demo</h1>
-
       {!token ? (
         <button
           onClick={handleLogin}
@@ -100,15 +59,7 @@ export default function Authentication() {
           Login with Domain
         </button>
       ) : (
-        <div>
-          <p className="mb-2 text-green-700">✅ Logged in</p>
-          <button
-            onClick={callApi}
-            className="px-4 py-2 rounded bg-green-600 text-white"
-          >
-            Call Agencies API
-          </button>
-        </div>
+        <p className="mb-2 text-green-700 font-medium">✅ Authenticated</p>
       )}
     </div>
   );
