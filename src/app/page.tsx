@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import {RentalFinder} from "./rentalFinder";
-import Authentication from "./authenication";
+import Authentication from "./authentication";
 
 export default function Home() {
   return (

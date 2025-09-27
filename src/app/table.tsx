@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import type { Rental } from "./types";
+import type { Rental } from "./rental";
 
 type TableProps = {
   data: Rental[];
