@@ -1,5 +1,4 @@
 export type Rental = {
-  id: string;
   address: string;
   suburb: string;
   rent: number;

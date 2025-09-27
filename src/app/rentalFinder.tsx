@@ -10,8 +10,8 @@ export const RentalFinder: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false); // toggle for filter panel
 
   const data: Rental[] = [
-    { address: "123 Main St", rent: 500, bedrooms: 2, bathrooms: 1, carspaces: 1, commute: 30, gym: 5, supermarket: 2, link: "https://example.com/1" },
-    { address: "456 Oak Ave", rent: 1200, bedrooms: 3, bathrooms: 2, carspaces: 2, commute: 45, gym: 15, supermarket: 10, link: "https://example.com/2" },
+    { address: "123 Main St", suburb: "Strathfield NSW", rent: 500, bedrooms: 2, bathrooms: 1, carspaces: 1, commute: 30, gym: 5, supermarket: 2, link: "https://example.com/1" },
+    { address: "456 Oak Ave", suburb: "Lane Cove NSW", rent: 1200, bedrooms: 3, bathrooms: 2, carspaces: 2, commute: 45, gym: 15, supermarket: 10, link: "https://example.com/2" },
     // Add more rentals...
   ];
 
