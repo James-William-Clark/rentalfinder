@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import type { Rental } from "./types";
+import type { Rental } from "./rental";
 import { TableFilters } from "./tableFilters";
 import { Table } from "./table";
 
@@ -8,89 +8,58 @@ export const RentalFinder: React.FC = () => {
   const [sortBy, setSortBy] = useState<keyof Rental>("address");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  // Filters
-  const [rentFilter, setRentFilter] = useState<number | null>(null);
-  const [bedroomsFilter, setBedroomsFilter] = useState<number | null>(null);
-  const [bathroomsFilter, setBathroomsFilter] = useState<number | null>(null);
-  const [carspacesFilter, setCarspacesFilter] = useState<number | null>(null);
-  const [commuteFilter, setCommuteFilter] = useState<number | null>(null);
-  const [gymFilter, setGymFilter] = useState<number | null>(null);
-  const [supermarketFilter, setSupermarketFilter] = useState<number | null>(null);
-
   const data: Rental[] = [
-    {
-      address: "123 Main St",
-      rent: 500,
-      bedrooms: 2,
-      bathrooms: 1,
-      carspaces: 1,
-      commute: 30,
-      gym: 5,
-      supermarket: 2,
-      link: "https://example.com/1",
-    },
-    {
-      address: "456 Oak Ave",
-      rent: 1200,
-      bedrooms: 3,
-      bathrooms: 2,
-      carspaces: 2,
-      commute: 45,
-      gym: 15,
-      supermarket: 10,
-      link: "https://example.com/2",
-    },
+    { address: "123 Main St", rent: 500, bedrooms: 2, bathrooms: 1, carspaces: 1, commute: 30, gym: 5, supermarket: 2, link: "https://example.com/1" },
+    { address: "456 Oak Ave", rent: 1200, bedrooms: 3, bathrooms: 2, carspaces: 2, commute: 45, gym: 15, supermarket: 10, link: "https://example.com/2" },
     // Add more rentals...
   ];
 
-  // Filter logic
-  const filteredData = data.filter((item) => {
-    const matchesRent = rentFilter === null ? true : rentFilter === 2000 ? item.rent >= 2000 : item.rent <= rentFilter;
-    const matchesBedrooms = bedroomsFilter === null ? true : bedroomsFilter === 5 ? item.bedrooms >= 5 : item.bedrooms <= bedroomsFilter;
-    const matchesBathrooms = bathroomsFilter === null ? true : bathroomsFilter === 3 ? item.bathrooms >= 3 : item.bathrooms <= bathroomsFilter;
-    const matchesCarspaces = carspacesFilter === null ? true : carspacesFilter === 3 ? item.carspaces >= 3 : item.carspaces <= carspacesFilter;
-    const matchesCommute = commuteFilter === null ? true : commuteFilter === 60 ? item.commute >= 60 : item.commute <= commuteFilter;
-    const matchesGym = gymFilter === null ? true : gymFilter === 60 ? item.gym >= 60 : item.gym <= gymFilter;
-    const matchesSupermarket = supermarketFilter === null ? true : supermarketFilter === 60 ? item.supermarket >= 60 : item.supermarket <= supermarketFilter;
+  // Identify numeric fields automatically
+  const numericFields = Object.keys(data[0]).filter((key) => typeof data[0][key as keyof Rental] === "number");
 
-    return matchesRent && matchesBedrooms && matchesBathrooms && matchesCarspaces && matchesCommute && matchesGym && matchesSupermarket;
-  });
+  // Initialize tableFilters dynamically
+  const [tableFilters, setTableFiltersState] = useState<Record<string, number | null>>(
+    Object.fromEntries(numericFields.map((f) => [f, null]))
+  );
 
-  // Sorting logic
+  const setTableFilters = (key: string, value: number | null) => {
+    setTableFiltersState((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Define numeric ranges for fields
+  const numericRanges: Record<string, number[]> = {
+    rent: [300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000],
+    bedrooms: [0, 1, 2, 3, 4, 5],
+    bathrooms: [1, 2, 3],
+    carspaces: [0, 1, 2, 3],
+    commute: [10, 15, 20, 25, 30, 40, 50, 60],
+    gym: [10, 15, 20, 25, 30, 40, 50, 60],
+    supermarket: [10, 15, 20, 25, 30, 40, 50, 60],
+  };
+
+  // Filter data
+  const filteredData = data.filter((item) =>
+    Object.entries(tableFilters).every(([key, filterValue]) => {
+      if (filterValue === null) return true;
+      const value = item[key as keyof Rental] as number;
+      const maxValue = numericRanges[key][numericRanges[key].length - 1];
+      return filterValue === maxValue ? value >= maxValue : value <= filterValue;
+    })
+  );
+
+  // Sort data
   const sortedData = [...filteredData].sort((a, b) => {
     const aValue = a[sortBy];
     const bValue = b[sortBy];
-
     if (typeof aValue === "number" && typeof bValue === "number") return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
-    else if (typeof aValue === "string" && typeof bValue === "string") return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+    if (typeof aValue === "string" && typeof bValue === "string") return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
     return 0;
   });
 
   return (
     <div>
-      <TableFilters
-        rentFilter={rentFilter}
-        setRentFilter={setRentFilter}
-        bedroomsFilter={bedroomsFilter}
-        setBedroomsFilter={setBedroomsFilter}
-        bathroomsFilter={bathroomsFilter}
-        setBathroomsFilter={setBathroomsFilter}
-        carspacesFilter={carspacesFilter}
-        setCarspacesFilter={setCarspacesFilter}
-        commuteFilter={commuteFilter}
-        setCommuteFilter={setCommuteFilter}
-        gymFilter={gymFilter}
-        setGymFilter={setGymFilter}
-        supermarketFilter={supermarketFilter}
-        setSupermarketFilter={setSupermarketFilter}
-      />
-      <Table
-        data={sortedData}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        setSortBy={setSortBy}
-        setSortOrder={setSortOrder}
-      />
+      <TableFilters tableFilters={tableFilters} setTableFilters={setTableFilters} numericRanges={numericRanges} />
+      <Table data={sortedData} sortBy={sortBy} sortOrder={sortOrder} setSortBy={setSortBy} setSortOrder={setSortOrder} />
     </div>
   );
 };
