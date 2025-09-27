@@ -1,14 +1,13 @@
-type Rental = {
-    address: string;
-    rent: number;
-    bedrooms: number;
-    bathrooms: number;
-    carspaces: number;
-    commute: number;
-    gym: number;
-    supermarket: number;
-    link: number;
-
-  };
-
-export type {Rental};
+export type Rental = {
+  id: string;
+  address: string;
+  suburb: string;
+  rent: number;
+  bedrooms: number;
+  bathrooms: number;
+  carspaces: number;
+  commute: number;
+  gym: number;
+  supermarket: number;
+  link: string; // URL to the Domain listing
+};
