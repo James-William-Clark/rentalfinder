@@ -18,12 +18,27 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ tableFilters, setTab
   };
 
   return (
-    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "10px" }}>
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "15px",
+        justifyContent: "flex-start",
+      }}
+    >
       {Object.keys(tableFilters).map((key) => (
         <select
           key={key}
           value={tableFilters[key] ?? ""}
           onChange={(e) => setTableFilters(key, e.target.value ? Number(e.target.value) : null)}
+          style={{
+            minWidth: "120px",
+            padding: "6px 8px",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
+            fontSize: "14px",
+            height: "36px",
+          }}
         >
           <option value="">
             {fieldLabels[key] ?? `Any ${key.charAt(0).toUpperCase() + key.slice(1)}`}
@@ -36,5 +51,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ tableFilters, setTab
         </select>
       ))}
     </div>
+
   );
 };
